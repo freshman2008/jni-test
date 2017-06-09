@@ -8,6 +8,16 @@
 using namespace std;
 
 static google_breakpad::ExceptionHandler *handler = NULL;
+
+// dump file save path
+bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
+                  void* context,
+                  bool succeeded) {
+  printf("Dump path: %s\n", descriptor.path());
+  __android_log_print(ANDROID_LOG_ERROR, "JNITag", "Dump path: %s\n", descriptor.path());
+  return succeeded;
+}
+
 void crash() {
 	volatile int* a = (int*)(NULL); *a = 1;
 }
@@ -104,7 +114,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 		google_breakpad::MinidumpDescriptor descriptor(dmppath);
 		handler = new google_breakpad::ExceptionHandler(descriptor,
 				  NULL,
-				  NULL,
+				  DumpCallback,
 				  NULL,
 				  true,
 				  -1);
