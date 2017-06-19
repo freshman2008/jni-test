@@ -1,0 +1,22 @@
+BuildVersion: V20160930_07
+Date:2017.04.01
+
+说明:
+这个版本继续修改了混淆模式，使得性能得到进一步提升。
+
+测试结果：
+三星S7
+ARQC 3ms   ICCsign 51ms  verify 30ms
+encrypt_with_internal_storage_key 7.28ms
+
+
+Nexus4
+ARQC 5ms   ICCsign 52ms  verify 28ms
+encrypt_with_internal_storage_key 8ms
+
+
+文件说明：
+jni/libocto.a：白盒静态库
+jni/YWB.h：唯一暴露的头文件，里面定义了所有外部接口。
+jni/main.cpp, testData.h, unitTest.h：测试代码
+octoWx：测试代码编译出的可执行文件，可以在Android手机上直接运行。

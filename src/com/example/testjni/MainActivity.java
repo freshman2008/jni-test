@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				tv.setText(whatFromJNI("Good!"));
+				setUpSSLJNI();
 			}
 		});
     }
@@ -40,6 +41,7 @@ public class MainActivity extends Activity {
      */
     public native String helloFromJNI();
     public native String whatFromJNI(String info);
+    public native void setUpSSLJNI();
 
     /**
      * 库加载
