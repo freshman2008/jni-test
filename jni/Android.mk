@@ -2,8 +2,11 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    		:= test_jni
-LOCAL_SRC_FILES			:= TestJNIInterface.cpp 
+LOCAL_SRC_FILES			:= TestJNIInterface.cpp \
+						   util/MyLog.cpp
+						   
 LOCAL_STATIC_LIBRARIES	:= breakpad_client
+#LOCAL_CPPFLAGS 			+= -fvisibility=hidden -mllvm -sub -mllvm -bcf -mllvm -fla
 LOCAL_LDLIBS    		:= -llog 	# call __android_log_print in c++ code need add this line
 include $(BUILD_SHARED_LIBRARY) 
 

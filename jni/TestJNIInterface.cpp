@@ -3,6 +3,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <android/log.h>
+#include "util/MyLog.h"
 #include "client/linux/handler/exception_handler.h"
 
 using namespace std;
@@ -14,6 +15,7 @@ bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
                   void* context,
                   bool succeeded) {
   printf("Dump path: %s\n", descriptor.path());
+  MyLog::helloprint(1, "JNITag", "sxcvxdvsvsd");
   __android_log_print(ANDROID_LOG_ERROR, "JNITag", "Dump path: %s\n", descriptor.path());
   return succeeded;
 }
