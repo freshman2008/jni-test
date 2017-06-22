@@ -12,7 +12,10 @@ LOCAL_SRC_FILES			:= TestJNIInterface.cpp \
 						   
 LOCAL_STATIC_LIBRARIES	:= breakpad_client curl ssl crypto
 #LOCAL_CPPFLAGS 			+= -fvisibility=hidden -mllvm -sub -mllvm -bcf -mllvm -fla
-LOCAL_LDLIBS    		:= -llog 	# call __android_log_print in c++ code need add this line
+# for native log __android_log_print
+LOCAL_LDLIBS    := -llog
+# for native asset manager
+LOCAL_LDLIBS    += -landroid
 include $(BUILD_SHARED_LIBRARY) 
 
 $(call import-add-path, $(LOCAL_PATH))

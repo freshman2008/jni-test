@@ -6,6 +6,8 @@
 #include "util/MyLog.h"
 #include "client/linux/handler/exception_handler.h"
 #include <curl/curl.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
 
 using namespace std;
 
@@ -24,6 +26,35 @@ bool DumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
 void crash() {
 	volatile int* a = (int*) (NULL);
 	*a = 1;
+}
+
+unsigned char * getCertData(JNIEnv *env, char *filename, jobject assetManager) {
+	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
+	if(mgr == NULL) {
+		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "AAssetManager is NULL\n");
+		return NULL;
+	} else {
+		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "AAssetManager is not NULL\n");
+		AAsset* asset = AAssetManager_open(mgr, filename, AASSET_MODE_UNKNOWN);
+		if(asset == NULL)	{
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "asset is NULL\n");
+			return NULL;
+		} else {
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "asset is not NULL\n");
+			/*获取文件大小*/
+			off_t bufferSize = AAsset_getLength(asset);
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s file size : %ld\n", filename, bufferSize);
+			unsigned char *buffer = (unsigned char *)malloc(bufferSize + 1);
+			buffer[bufferSize] = 0;
+			int numBytesRead = AAsset_read(asset, buffer, bufferSize);
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s buffer : %s\n", filename, buffer);
+//			memcpy(str, buffer, bufferSize);
+//			free(buffer);
+			/*关闭文件*/
+			AAsset_close(asset);
+			return buffer;
+		}
+	}
 }
 
 /**
@@ -74,7 +105,7 @@ static int OnDebug(CURL *, curl_infotype itype, char *pData, size_t size, void *
     return 0;
 }
 
-JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
+JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz, jobject assetManager) {
 	__android_log_print(ANDROID_LOG_ERROR, "JNITag", "Hello, I'm native c++ function : setUpSSL()!\n");
 	CURL *curl;
 	CURLcode code;
@@ -85,11 +116,9 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 
 	curl = curl_easy_init();
 	if(curl) {
-	    // curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-	    curl_easy_setopt(curl, CURLOPT_URL, "https://192.168.93.129:8888");
+        curl_easy_setopt(curl, CURLOPT_URL, "https://192.168.93.129:8888");
 	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OnWriteData);
 	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&strResponse);
-
 	    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	    curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, OnDebug);
 
@@ -105,7 +134,6 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 		 */
 	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
-
 	    /*
 	     * If the site you're connecting to uses a different host name that what
 	     * they have mentioned in their server certificate's commonName (or
@@ -114,129 +142,41 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 	     */
 	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
-//	    curlCode = curl_easy_setopt(curl, CURLOPT_CAPATH, "/data/data/com.example.testjni/");
-//	    printf("curlCode: %d\n", (int)curlCode);
-//	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAPATH -> curlCode: %d\n", (int)curlCode);
+	    if (1) {
+		    unsigned char *ca_certs_pem = getCertData(env, "ca.crt", assetManager);
+		    unsigned char *client_certs_pem = getCertData(env, "client.crt", assetManager);
+		    unsigned char *client_key_pem = getCertData(env, "client.key", assetManager);
+		    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, ca_certs_pem);
+		    printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
 
-//	    curlCode = curl_easy_setopt(curl, CURLOPT_CERTINFO, 1L);
-//	    printf("curlCode: %d\n", (int)curlCode);
-//	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CERTINFO -> curlCode: %d\n", (int)curlCode);
+		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, client_certs_pem);
+		    printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
 
-	    long lSize;
-	    char * buffer;
-	    size_t result;
+		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, client_key_pem);
+		    printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
+	    } else {
+		    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, "ca.crt");
+		    printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
 
-	    unsigned char ca_certs_pem[10000]={0};
-	    unsigned char client_certs_pem[10000]={0};
-	    unsigned char client_key_pem[10000]={0};
+		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
+		    printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
 
-		FILE* fp = fopen("/data/data/com.example.testjni/ca.crt", "r");
-		if (fp == NULL) {
-			printf("ca.crt -> fopen failed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "ca.crt -> fopen failed\n");
-		} else {
-			printf("ca.crt -> fopen succeed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "ca.crt -> fopen succeed\n");
-			// obtain file size:
-			fseek (fp , 0 , SEEK_END);
-			lSize = ftell (fp);
-			rewind (fp);
-			buffer = (char*) malloc (sizeof(char)*lSize);
-			if (buffer == NULL) {
-				printf("read cert alloc Memory error\n");
-			}
-			// copy the file into the buffer:
-			result = fread (buffer,1,lSize,fp);
-			if (result != lSize) {
-				printf("Reading cert error\n");
-			}
-			fclose (fp);
-			memcpy(ca_certs_pem,buffer,lSize);
-			free (buffer);
-		}
+		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+			printf("curlCode: %d\n", (int)curlCode);
+		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERTTYPE -> curlCode: %d\n", (int)curlCode);
 
-		FILE* fp1 = fopen("/data/data/com.example.testjni/client.crt", "r");
-		if (fp1 == NULL) {
-			printf("client.crt -> fopen failed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.crt -> fopen failed\n");
-		} else {
-			printf("client.crt -> fopen succeed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.crt -> fopen succeed\n");
-			// obtain file size:
-			fseek (fp1 , 0 , SEEK_END);
-			lSize = ftell (fp1);
-			rewind (fp1);
-			buffer = (char*) malloc (sizeof(char)*lSize);
-			if (buffer == NULL) {
-				printf("read cert alloc Memory error\n");
-			}
-			// copy the file into the buffer:
-			result = fread (buffer,1,lSize,fp1);
-			if (result != lSize) {
-				printf("Reading cert error\n");
-			}
-			fclose (fp1);
-			memcpy(client_certs_pem,buffer,lSize);
-			free (buffer);
-		}
+		    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTPASSWD, "");
+		    // printf("curlCode: %d\n", (int)curlCode);
 
-		FILE* fp2 = fopen("/data/data/com.example.testjni/client.key", "r");
-		if (fp2 == NULL) {
-			printf("client.key -> fopen failed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.key -> fopen failed\n");
-		} else {
-			printf("client.key -> fopen succeed\n");
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.key -> fopen succeed\n");
-			// obtain file size:
-			fseek (fp2 , 0 , SEEK_END);
-			lSize = ftell (fp2);
-			rewind (fp2);
-			buffer = (char*) malloc (sizeof(char)*lSize);
-			if (buffer == NULL) {
-				printf("read cert alloc Memory error\n");
-			}
-			// copy the file into the buffer:
-			result = fread (buffer,1,lSize,fp2);
-			if (result != lSize) {
-				printf("Reading cert error\n");
-			}
-			fclose (fp2);
-			memcpy(client_key_pem,buffer,lSize);
-			free (buffer);
-		}
-	    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, ca_certs_pem);
-	    printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-
-	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, client_certs_pem);
-	    printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
-
-	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, client_key_pem);
-	    printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
-
-
-/*
-	    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, "ca.crt");
-	    printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-
-	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
-	    printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
-
-	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
-		printf("curlCode: %d\n", (int)curlCode);
-	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERTTYPE -> curlCode: %d\n", (int)curlCode);
-
-	    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTPASSWD, "");
-	    // printf("curlCode: %d\n", (int)curlCode);
-
-	     curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
-	     printf("curlCode: %d\n", (int)curlCode);
-	     __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
-*/
+		     curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
+		     printf("curlCode: %d\n", (int)curlCode);
+		     __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
+	    }
 
 		/* Perform the request, res will get the return code */
 	    code = curl_easy_perform(curl);
@@ -271,7 +211,7 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 static JNINativeMethod method_table[] = {
 		{ "helloFromJNI", "()Ljava/lang/String;", (void*) sayHello },
 		{ "whatFromJNI", "(Ljava/lang/String;)Ljava/lang/String;", (void*) sayWhat },
-		{ "setUpSSLJNI", "()V", (void*) setUpSSL },
+		{ "setUpSSLJNI", "(Landroid/content/res/AssetManager;)V", (void*) setUpSSL },
 };
 
 /**

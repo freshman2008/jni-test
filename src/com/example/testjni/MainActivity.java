@@ -1,6 +1,7 @@
 package com.example.testjni;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -31,7 +32,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				tv.setText(whatFromJNI("Good!"));
-				setUpSSLJNI();
+				AssetManager assetMgr = getApplicationContext().getAssets();
+				setUpSSLJNI(assetMgr);
 			}
 		});
     }
@@ -41,7 +43,7 @@ public class MainActivity extends Activity {
      */
     public native String helloFromJNI();
     public native String whatFromJNI(String info);
-    public native void setUpSSLJNI();
+    public native void setUpSSLJNI(AssetManager assetMgr);
 
     /**
      * 库加载
