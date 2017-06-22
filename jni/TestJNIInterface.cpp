@@ -59,96 +59,26 @@ static size_t OnWriteData(void *buffer, size_t size, size_t nmemb, void *lpVoid)
     return nmemb;
 }
 
-//JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
-//	__android_log_print(ANDROID_LOG_ERROR, "JNITag", "Hello, I'm native c++ function : setUpSSL()!\n");
-//	CURL *curl;
-//	CURLcode code;
-//	string strResponse;
-//
-//	curl_global_init(CURL_GLOBAL_DEFAULT);
-//
-//	curl = curl_easy_init();
-//	if(curl) {
-//		// curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-//		curl_easy_setopt(curl, CURLOPT_URL, "https://192.168.93.129:8888");
-//		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OnWriteData);
-//		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&strResponse);
-//
-//		//#ifdef SKIP_PEER_VERIFICATION
-//		/*
-//		 * If you want to connect to a site who isn't using a certificate that is
-//		 * signed by one of the certs in the CA bundle you have, you can skip the
-//		 * verification of the server's certificate. This makes the connection
-//		 * A LOT LESS SECURE.
-//		 *
-//		 * If you have a CA cert for the server stored someplace else than in the
-//		 * default bundle, then the CURLOPT_CAPATH option might come handy for
-//		 * you.
-//		 */
-//		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-//		//#endif
-//
-//		//#ifdef SKIP_HOSTNAME_VERIFICATION
-//		/*
-//		 * If the site you're connecting to uses a different host name that what
-//		 * they have mentioned in their server certificate's commonName (or
-//		 * subjectAltName) fields, libcurl will refuse to connect. You can skip
-//		 * this check, but this will make the connection less secure.
-//		 */
-//		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-//		//#endif
-//
-////		CURLcode curlCode = curl_easy_setopt(curl, CURLOPT_CERTINFO, 1L);
-////		printf("CURLOPT_CERTINFO -> curlCode: %d\n", (int)curlCode);
-////		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CERTINFO -> curlCode: %d\n", (int)curlCode);
-//
-//		CURLcode curlCode = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-//		printf("CURLOPT_VERBOSE -> curlCode: %d\n", (int)curlCode);
-//		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_VERBOSE -> curlCode: %d\n", (int)curlCode);
-//
-//		curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, "ca.crt");
-//		printf("CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-//		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-//
-//		 curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
-//		 printf("CURLOPT_SSLCERT-> curlCode: %d\n", (int)curlCode);
-//		 __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
-//
-//		// curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTPASSWD, "");
-//		// printf("curlCode: %d\n", (int)curlCode);
-//
-//		 curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
-//		 printf("CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
-//		 __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
-//
-//		/* Perform the request, res will get the return code */
-//		code = curl_easy_perform(curl);
-//		printf("code: %d\n", (int)code);
-//		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "code: %d\n", (int)code);
-//		__android_log_print(ANDROID_LOG_ERROR, "JNITag", "strResponse:%s\n", strResponse.c_str());
-//		/* Check for errors */
-//		if (code == CURLE_OK) {
-//			printf("curl_easy_perform() succeed!\n");
-//			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() succeed!\n");
-//		} else if (code == CURLE_SSL_CONNECT_ERROR) {
-//			printf("curl_easy_perform() failed, code is CURLE_SSL_CONNECT_ERROR\n");
-//			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() failed, code is CURLE_SSL_CONNECT_ERROR\n");
-//		} else {
-//			printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
-//			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
-//		}
-//
-//		/* always cleanup */
-//		curl_easy_cleanup(curl);
-//	}
-//
-//	curl_global_cleanup();
-//}
+static int OnDebug(CURL *, curl_infotype itype, char *pData, size_t size, void *) {
+    if (itype == CURLINFO_TEXT) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "[TEXT]%s", pData);
+    } else if (itype == CURLINFO_HEADER_IN) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "[HEADER_IN]%s", pData);
+    } else if (itype == CURLINFO_HEADER_OUT) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "[HEADER_OUT]%s", pData);
+    } else if (itype == CURLINFO_DATA_IN) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "[DATA_IN]%s", pData);
+    } else if (itype == CURLINFO_DATA_OUT) {
+        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "[DATA_OUT]%s", pData);
+    }
+    return 0;
+}
 
 JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 	__android_log_print(ANDROID_LOG_ERROR, "JNITag", "Hello, I'm native c++ function : setUpSSL()!\n");
 	CURL *curl;
 	CURLcode code;
+	CURLcode curlCode;
 	string strResponse;
 
 	curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -160,6 +90,9 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OnWriteData);
 	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&strResponse);
 
+	    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	    curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, OnDebug);
+
 		/*
 		 * If you want to connect to a site who isn't using a certificate that is
 		 * signed by one of the certs in the CA bundle you have, you can skip the
@@ -170,7 +103,7 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 		 * default bundle, then the CURLOPT_CAPATH option might come handy for
 		 * you.
 		 */
-	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
 
 	    /*
@@ -179,30 +112,136 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz) {
 	     * subjectAltName) fields, libcurl will refuse to connect. You can skip
 	     * this check, but this will make the connection less secure.
 	     */
-	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L);
+	    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
 
+//	    curlCode = curl_easy_setopt(curl, CURLOPT_CAPATH, "/data/data/com.example.testjni/");
+//	    printf("curlCode: %d\n", (int)curlCode);
+//	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAPATH -> curlCode: %d\n", (int)curlCode);
 
-	    CURLcode curlCode = curl_easy_setopt(curl, CURLOPT_CERTINFO, 1L);
+//	    curlCode = curl_easy_setopt(curl, CURLOPT_CERTINFO, 1L);
+//	    printf("curlCode: %d\n", (int)curlCode);
+//	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CERTINFO -> curlCode: %d\n", (int)curlCode);
+
+	    long lSize;
+	    char * buffer;
+	    size_t result;
+
+	    unsigned char ca_certs_pem[10000]={0};
+	    unsigned char client_certs_pem[10000]={0};
+	    unsigned char client_key_pem[10000]={0};
+
+		FILE* fp = fopen("/data/data/com.example.testjni/ca.crt", "r");
+		if (fp == NULL) {
+			printf("ca.crt -> fopen failed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "ca.crt -> fopen failed\n");
+		} else {
+			printf("ca.crt -> fopen succeed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "ca.crt -> fopen succeed\n");
+			// obtain file size:
+			fseek (fp , 0 , SEEK_END);
+			lSize = ftell (fp);
+			rewind (fp);
+			buffer = (char*) malloc (sizeof(char)*lSize);
+			if (buffer == NULL) {
+				printf("read cert alloc Memory error\n");
+			}
+			// copy the file into the buffer:
+			result = fread (buffer,1,lSize,fp);
+			if (result != lSize) {
+				printf("Reading cert error\n");
+			}
+			fclose (fp);
+			memcpy(ca_certs_pem,buffer,lSize);
+			free (buffer);
+		}
+
+		FILE* fp1 = fopen("/data/data/com.example.testjni/client.crt", "r");
+		if (fp1 == NULL) {
+			printf("client.crt -> fopen failed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.crt -> fopen failed\n");
+		} else {
+			printf("client.crt -> fopen succeed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.crt -> fopen succeed\n");
+			// obtain file size:
+			fseek (fp1 , 0 , SEEK_END);
+			lSize = ftell (fp1);
+			rewind (fp1);
+			buffer = (char*) malloc (sizeof(char)*lSize);
+			if (buffer == NULL) {
+				printf("read cert alloc Memory error\n");
+			}
+			// copy the file into the buffer:
+			result = fread (buffer,1,lSize,fp1);
+			if (result != lSize) {
+				printf("Reading cert error\n");
+			}
+			fclose (fp1);
+			memcpy(client_certs_pem,buffer,lSize);
+			free (buffer);
+		}
+
+		FILE* fp2 = fopen("/data/data/com.example.testjni/client.key", "r");
+		if (fp2 == NULL) {
+			printf("client.key -> fopen failed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.key -> fopen failed\n");
+		} else {
+			printf("client.key -> fopen succeed\n");
+			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "client.key -> fopen succeed\n");
+			// obtain file size:
+			fseek (fp2 , 0 , SEEK_END);
+			lSize = ftell (fp2);
+			rewind (fp2);
+			buffer = (char*) malloc (sizeof(char)*lSize);
+			if (buffer == NULL) {
+				printf("read cert alloc Memory error\n");
+			}
+			// copy the file into the buffer:
+			result = fread (buffer,1,lSize,fp2);
+			if (result != lSize) {
+				printf("Reading cert error\n");
+			}
+			fclose (fp2);
+			memcpy(client_key_pem,buffer,lSize);
+			free (buffer);
+		}
+	    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, ca_certs_pem);
 	    printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
 
-	    curlCode = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, client_certs_pem);
 	    printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
 
+	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, client_key_pem);
+	    printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
+
+
+/*
 	    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, "ca.crt");
 	    printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
 
-	    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
-	    // printf("curlCode: %d\n", (int)curlCode);
+	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
+	    printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
+
+	    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+		printf("curlCode: %d\n", (int)curlCode);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERTTYPE -> curlCode: %d\n", (int)curlCode);
 
 	    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTPASSWD, "");
 	    // printf("curlCode: %d\n", (int)curlCode);
 
-	    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
-	    // printf("curlCode: %d\n", (int)curlCode);
+	     curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
+	     printf("curlCode: %d\n", (int)curlCode);
+	     __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
+*/
 
-	    /* Perform the request, res will get the return code */
+		/* Perform the request, res will get the return code */
 	    code = curl_easy_perform(curl);
 	    printf("code: %d\n", (int)code);
+	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform -> code: %d\n", (int)code);
 	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "strResponse:%s\n", strResponse.c_str());
 
 	    /* Check for errors */
