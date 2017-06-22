@@ -41,16 +41,12 @@ unsigned char * getCertData(JNIEnv *env, char *filename, jobject assetManager) {
 			return NULL;
 		} else {
 			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "asset is not NULL\n");
-			/*获取文件大小*/
 			off_t bufferSize = AAsset_getLength(asset);
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s file size : %ld\n", filename, bufferSize);
+//			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s file size : %ld\n", filename, bufferSize);
 			unsigned char *buffer = (unsigned char *)malloc(bufferSize + 1);
 			buffer[bufferSize] = 0;
 			int numBytesRead = AAsset_read(asset, buffer, bufferSize);
-			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s buffer : %s\n", filename, buffer);
-//			memcpy(str, buffer, bufferSize);
-//			free(buffer);
-			/*关闭文件*/
+//			__android_log_print(ANDROID_LOG_ERROR, "JNITag", "%s buffer : %s\n", filename, buffer);
 			AAsset_close(asset);
 			return buffer;
 		}
@@ -147,50 +143,26 @@ JNIEXPORT void JNICALL setUpSSL(JNIEnv *env, jobject clazz, jobject assetManager
 		    unsigned char *client_certs_pem = getCertData(env, "client.crt", assetManager);
 		    unsigned char *client_key_pem = getCertData(env, "client.key", assetManager);
 		    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, ca_certs_pem);
-		    printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-
 		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, client_certs_pem);
-		    printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
-
 		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, client_key_pem);
-		    printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
 	    } else {
 		    curlCode = curl_easy_setopt(curl, CURLOPT_CAINFO, "ca.crt");
-		    printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_CAINFO -> curlCode: %d\n", (int)curlCode);
-
 		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.crt");
-		    printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERT -> curlCode: %d\n", (int)curlCode);
-
-		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
-			printf("curlCode: %d\n", (int)curlCode);
-		    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLCERTTYPE -> curlCode: %d\n", (int)curlCode);
-
-		    // curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTPASSWD, "");
-		    // printf("curlCode: %d\n", (int)curlCode);
-
-		     curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
-		     printf("curlCode: %d\n", (int)curlCode);
-		     __android_log_print(ANDROID_LOG_ERROR, "JNITag", "CURLOPT_SSLKEY -> curlCode: %d\n", (int)curlCode);
+//		    curlCode = curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+            curlCode = curl_easy_setopt(curl, CURLOPT_SSLKEY, "client.key");
 	    }
 
-		/* Perform the request, res will get the return code */
 	    code = curl_easy_perform(curl);
-	    printf("code: %d\n", (int)code);
 	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform -> code: %d\n", (int)code);
 	    __android_log_print(ANDROID_LOG_ERROR, "JNITag", "strResponse:%s\n", strResponse.c_str());
 
 	    /* Check for errors */
 	    if (code == CURLE_OK) {
-	      printf("curl_easy_perform() succeed!\n");
+	        __android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() succeed!\n");
 	    } else if (code == CURLE_SSL_CONNECT_ERROR) {
-	      printf("curl_easy_perform() failed, code is CURLE_SSL_CONNECT_ERROR\n");
+	    	__android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() failed, code is CURLE_SSL_CONNECT_ERROR!\n");
 	    } else {
-	      printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
+	    	__android_log_print(ANDROID_LOG_ERROR, "JNITag", "curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
 	    }
 
 	    /* always cleanup */
